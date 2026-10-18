@@ -1,4 +1,3 @@
-
 import os
 from pathlib import Path
 
@@ -6,9 +5,15 @@ import streamlit as st
 from dotenv import load_dotenv
 from google import genai
 
-# Load API key
+# API key load karo: pehle .env se (local), phir Streamlit Secrets se (cloud)
 load_dotenv(Path(__file__).resolve().parent / ".env")
 api_key = os.getenv("GEMINI_API_KEY")
+
+if not api_key:
+    try:
+        api_key = st.secrets["GEMINI_API_KEY"]
+    except Exception:
+        api_key = None
 
 st.set_page_config(
     page_title="Nova AI Chat",
@@ -47,7 +52,7 @@ div[data-testid="stChatInput"] {
 """, unsafe_allow_html=True)
 
 if not api_key:
-    st.error("API key nahi mili. Apni .env file check karo.")
+    st.error("API key nahi mili. Streamlit Secrets ya .env file check karo.")
     st.stop()
 
 client = genai.Client(api_key=api_key)
@@ -118,7 +123,7 @@ if prompt:
         with st.spinner("Nova is thinking..."):
             try:
                 response = client.models.generate_content(
-                    model="gemini-2.5-flash",
+                    model="gemini-3.8-flash",
                     contents=history
                 )
                 answer = response.text or "No text response received."
